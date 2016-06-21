@@ -7,8 +7,12 @@ public class Rollet {
     private int id;
     private int width;
     private int height;
+    private int userId;
+    private int rolletState;
+    private int lighterState;
+    private int lighterId;
 
-    public int getHeight() {
-        return height;
+    public int getRolletState() {
+        return rolletState;
     }
 }

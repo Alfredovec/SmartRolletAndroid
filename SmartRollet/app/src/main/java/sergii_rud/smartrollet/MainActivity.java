@@ -2,7 +2,6 @@ package sergii_rud.smartrollet;
 
 import android.os.AsyncTask;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,16 +15,13 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.concurrent.ExecutionException;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -47,6 +43,13 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        imageView = (ImageView) findViewById(R.id.imageView);
+        if (rollet.getRolletState() == 0) {
+            imageView.setImageResource(R.drawable.closedrollet);
+        } else {
+            imageView.setImageResource(R.drawable.openedrollet);
+        }
     }
 
     public void addListenerOnButton() {
@@ -59,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         buttonFullClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                new UpdateRolletTask().execute(0);
+                new UpdateRolletTask().execute(169);
                 imageView.setImageResource(R.drawable.closedrollet);
             }
         });
@@ -67,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         buttonFullOpen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                new UpdateRolletTask().execute(169);
+                new UpdateRolletTask().execute(-169);
                 imageView.setImageResource(R.drawable.openedrollet);
             }
         });
@@ -79,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         private Exception exception;
 
         protected Rollet doInBackground(Void... params) {
-            String url = "http://10.23.15.75:4747/api/rollet/1";
+            String url = "http://10.23.20.42:4747/rollet?email=rud.sergey.v@gmail.com";
 
             // create HttpClient
             HttpClient httpclient = new DefaultHttpClient();
@@ -97,17 +100,17 @@ public class MainActivity extends AppCompatActivity {
 
             // receive response as inputStream
             Gson gson = new Gson();
-            Type type = new TypeToken<Rollet>() { }.getType();
-            Rollet rollet = null;
+            Type type = new TypeToken<ArrayList<Rollet>>() { }.getType();
+            ArrayList<Rollet> rollets = null;
             String jsonString = null;
             try {
                 jsonString = EntityUtils.toString(httpResponse.getEntity());
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            rollet = gson.fromJson(jsonString, type);
+            rollets = gson.fromJson(jsonString, type);
 
-            return rollet;
+            return rollets.get(0);
         }
 
         protected void onPostExecute(Rollet rollet)
@@ -115,47 +118,26 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class UpdateRolletTask extends AsyncTask<Integer, Void, Rollet> {
+    class UpdateRolletTask extends AsyncTask<Integer, Void, Integer> {
 
         private Exception exception;
 
-        protected Rollet doInBackground(Integer... params) {
-            String url = "http://10.23.15.75:4747/api/rollet/";
+        protected Integer doInBackground(Integer... params) {
+            String url = "http://10.23.20.42:4747/rollet/1?change=" + params[0];
 
             // create HttpClient
             HttpClient httpclient = new DefaultHttpClient();
 
             // make GET request to the given URL
             HttpResponse httpResponse = null;
-            HttpPost post = new HttpPost(url);
-            post.setHeader("Content-Type", "application/x-www-form-urlencoded");
+            HttpPut put = new HttpPut(url);
             try {
-                post.setEntity(new StringEntity("Id=1&Width=100&Height=100&OpenedPart=" + params[0], "UTF8"));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            try {
-                httpResponse = httpclient.execute(post);
+                httpResponse = httpclient.execute(put);
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            InputStream inputStream = null;
-            String result = "";
-
-            // receive response as inputStream
-            Gson gson = new Gson();
-            Type type = new TypeToken<Rollet>() { }.getType();
-            Rollet rollet = null;
-            String jsonString = null;
-            try {
-                jsonString = EntityUtils.toString(httpResponse.getEntity());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            rollet = gson.fromJson(jsonString, type);
-
-            return rollet;
+            return 0;
         }
 
         protected void onPostExecute(Rollet rollet)
